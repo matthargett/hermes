@@ -1,0 +1,30 @@
+version: 1.0.{build}
+max_jobs: 2
+
+
+environment:
+  matrix:
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+      PLATFORM: x64
+
+matrix:
+  # Fail everything immediately if one build fails.
+  fast_finish: true
+
+clone_script:
+- ps: git -c core.autocrlf=false clone -q $("--branch=" + $env:APPVEYOR_REPO_BRANCH) $("https://github.com/" + $env:APPVEYOR_REPO_NAME + ".git") $env:APPVEYOR_BUILD_FOLDER
+- ps: if (!$env:APPVEYOR_PULL_REQUEST_NUMBER) {$("git checkout -qf " + $env:APPVEYOR_REPO_COMMIT)}
+- ps: if ($env:APPVEYOR_PULL_REQUEST_NUMBER) {git fetch -q origin +refs/pull/$($env:APPVEYOR_PULL_REQUEST_NUMBER)/merge; git checkout -qf FETCH_HEAD}
+- appveyor-retry git submodule update -q --init --recursive
+
+build_script:
+- C:\msys64\usr\bin\bash -lc "exec 0</dev/null && cd $APPVEYOR_BUILD_FOLDER &&
+  export HERMES_WS_DIR=$APPVEYOR_BUILD_FOLDER;
+  BUILD_SYSTEM='Visual Studio 16 2019' CMAKE_FLAGS='-A x64' DISTRIBUTE=1 hermes/utils/build_llvm.py;
+  CMAKE_FLAGS='-A x64 -DLLVM_ENABLE_LTO=OFF' DISTRIBUTE=1 hermes/utils/configure.sh 'Visual Studio 16 2019';
+  cd build_release && MSBuild.exe ALL_BUILD.vcxproj /p:Configuration=Release"
+
+
+test_script:
+  - ninja check-hermes
+
