@@ -13,7 +13,7 @@ clone_script:
 - appveyor-retry git submodule update -q --init --recursive
 
 build_script:
-- C:\msys64\usr\bin\bash -lc "exec 0</dev/null && cd $APPVEYOR_BUILD_FOLDER &&
+- C:\mingw-w64\x86_64-8.1.0-posix-seh-rt_v6-rev0\usr\bin\bash -lc "exec 0</dev/null && cd $APPVEYOR_BUILD_FOLDER &&
   export HERMES_WS_DIR=$APPVEYOR_BUILD_FOLDER;
   BUILD_SYSTEM='Visual Studio 16 2019' CMAKE_FLAGS='-A x64' DISTRIBUTE=1 hermes/utils/build_llvm.py;
   CMAKE_FLAGS='-A x64 -DLLVM_ENABLE_LTO=OFF' DISTRIBUTE=1 hermes/utils/configure.sh 'Visual Studio 16 2019';
